@@ -48,6 +48,22 @@ PublicRadio.prototype.listen = function() {
   this.server.listen(this.port);
 }
 
+PublicRadio.prototype.linkTo = function(host, port) {
+  var client = new PublicRadioClient(host, port);
+  var self = this;
+
+  client.on('connected', function(emitter) {
+    var emit = emitter.emit;
+
+    emitter.emit = function() {
+      self.emitter.emit.apply(self.emitter, arguments);
+      emit.apply(emitter, arguments);
+    }
+  });
+
+  client.connect();
+}
+
 exports.PublicRadio = PublicRadio;
 
 function PublicRadioClient(host, port) {
