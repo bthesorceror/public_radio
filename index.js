@@ -73,14 +73,25 @@ function PublicRadioClient(host, port) {
 
 util.inherits(PublicRadioClient, EventEmitter);
 
-PublicRadioClient.prototype._handler = function() {
-  var emitter = emitstream(this.client.pipe(json.parse([true])));
+PublicRadioClient.prototype.disconnected = function() {
+  this.emit('disconnected', this.emitter);
+}
 
-  this.emit('connected', emitter);
+PublicRadioClient.prototype.error = function(err) {
+  this.emit('error', err);
+  this.disconnected();
+}
+
+PublicRadioClient.prototype._handler = function() {
+  this.emitter = emitstream(this.client.pipe(json.parse([true])));
+  this.emit('connected', this.emitter);
 }
 
 PublicRadioClient.prototype.connect = function() {
   this.client = net.createConnection({port: this.port, host: this.host}, proxy(this._handler, this));
+  this.client.on('end', proxy(this.disconnected, this));
+  this.client.on('close', proxy(this.disconnected, this));
+  this.client.on('error', proxy(this.error, this));
 }
 
 exports.PublicRadioClient = PublicRadioClient;
