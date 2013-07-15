@@ -52,19 +52,41 @@ PublicRadio.prototype.linkTo = function(host, port) {
   var client = new PublicRadioClient(host, port);
   var self = this;
 
-  client.on('connected', function(emitter) {
-    var emit = emitter.emit;
-
-    emitter.emit = function() {
+  client.on('connected', function(connection) {
+    connection.events.on('incoming', function() {
       self.emitter.emit.apply(self.emitter, arguments);
-      emit.apply(emitter, arguments);
-    }
+    });
   });
 
   client.connect();
 }
 
 exports.PublicRadio = PublicRadio;
+
+function ClientConnection(socket) {
+  var self = this;
+  this.socket = socket;
+  this.events = new EventEmitter();
+  this.incoming = emitstream(socket.pipe(json.parse([true])));
+  this.outgoing = new EventEmitter();
+  emitstream(this.outgoing).pipe(json.stringify()).pipe(socket);
+  var emit = this.incoming.emit;
+
+  this.incoming.emit = function() {
+    var args = Array.prototype.slice.call(arguments);
+    args.unshift('incoming');
+    self.events.emit.apply(self.events, args);
+    emit.apply(self.incoming, arguments);
+  }
+}
+
+ClientConnection.prototype.on = function() {
+  this.incoming.on.apply(this.incoming, arguments);
+}
+
+ClientConnection.prototype.emit = function() {
+  this.outgoing.emit.apply(this.outgoing, arguments);
+}
 
 function PublicRadioClient(host, port) {
   this.host = host;
@@ -83,8 +105,8 @@ PublicRadioClient.prototype.error = function(err) {
 }
 
 PublicRadioClient.prototype._handler = function() {
-  this.emitter = emitstream(this.client.pipe(json.parse([true])));
-  this.emit('connected', this.emitter);
+  this.connection = new ClientConnection(this.client);
+  this.emit('connected', this.connection);
 }
 
 PublicRadioClient.prototype.connect = function() {
