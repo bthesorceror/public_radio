@@ -13,7 +13,6 @@ function proxy(func, context) {
 function PublicRadio(port) {
   this.server  = this.createServer();
   this.port    = port;
-  this.emitter = new EventEmitter();
   this.connections = [];
 }
 
