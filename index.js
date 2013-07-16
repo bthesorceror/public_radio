@@ -1,13 +1,8 @@
 var net              = require('net'),
     util             = require('util'),
+    proxy            = require('./lib/helpers').proxy,
     ClientConnection = require('./lib/client_connection'),
     EventEmitter     = require('events').EventEmitter;
-
-function proxy(func, context) {
-  return function() {
-    func.apply(context, arguments);
-  }
-}
 
 function PublicRadio(port) {
   this.server  = this.createServer();
