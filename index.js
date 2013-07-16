@@ -1,8 +1,7 @@
-var net          = require('net'),
-    emitstream   = require('emit-stream'),
-    util         = require('util'),
-    json         = require('JSONStream'),
-    EventEmitter = require('events').EventEmitter;
+var net              = require('net'),
+    util             = require('util'),
+    ClientConnection = require('./lib/client_connection'),
+    EventEmitter     = require('events').EventEmitter;
 
 function proxy(func, context) {
   return function() {
@@ -95,31 +94,6 @@ PublicRadio.prototype.linkTo = function(host, port) {
 }
 
 exports.PublicRadio = PublicRadio;
-
-function ClientConnection(socket) {
-  var self = this;
-  this.socket = socket;
-  this.events = new EventEmitter();
-  this.incoming = emitstream(socket.pipe(json.parse([true])));
-  this.outgoing = new EventEmitter();
-  emitstream(this.outgoing).pipe(json.stringify()).pipe(socket);
-  var emit = this.incoming.emit;
-
-  this.incoming.emit = function() {
-    var args = Array.prototype.slice.call(arguments);
-    args.unshift('incoming');
-    self.events.emit.apply(self.events, args);
-    emit.apply(self.incoming, arguments);
-  }
-}
-
-ClientConnection.prototype.on = function() {
-  this.incoming.on.apply(this.incoming, arguments);
-}
-
-ClientConnection.prototype.emit = function() {
-  this.outgoing.emit.apply(this.outgoing, arguments);
-}
 
 function PublicRadioClient(host, port) {
   this.host = host;
