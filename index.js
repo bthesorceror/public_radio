@@ -47,6 +47,7 @@ PublicRadio.prototype._broadcast = function(args, exclude) {
       conn.emit.apply(conn, args);
     }
   });
+  this.emit.apply(this, args);
 }
 
 PublicRadio.prototype.broadcast = function() {
@@ -55,6 +56,7 @@ PublicRadio.prototype.broadcast = function() {
 
 PublicRadio.prototype.listen = function() {
   this.server.listen(this.port);
+  return this;
 }
 
 PublicRadio.prototype.addConnection = function(connection) {
@@ -122,6 +124,7 @@ PublicRadioClient.prototype.connect = function() {
   this.client.on('end', proxy(this.disconnected, this));
   this.client.on('close', proxy(this.disconnected, this));
   this.client.on('error', proxy(this.error, this));
+  return this;
 }
 
 exports.PublicRadioClient = PublicRadioClient;
