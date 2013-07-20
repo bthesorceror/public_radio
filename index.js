@@ -36,9 +36,9 @@ PublicRadio.prototype.handler = function(socket) {
     this._broadcast(arguments, connection);
   }, this));
 
-  socket.on('close', disconnect)
-  socket.on('end', disconnect)
-  socket.on('error', error);
+  connection.events().on('close', disconnect)
+  connection.events().on('end', disconnect)
+  connection.events().on('error', error);
 }
 
 PublicRadio.prototype._broadcast = function(args, exclude) {
@@ -68,22 +68,29 @@ PublicRadio.prototype.removeConnection = function(connection) {
   }
 }
 
+PublicRadio.prototype.handleIncoming = function(connection) {
+  return proxy(function() {
+    this._broadcast(arguments, connection);
+  }, this);
+}
+
+PublicRadio.prototype.handleDisconnect = function(connection) {
+  return proxy(function() {
+    this.removeConnection(connection);
+  }, this);
+}
+
+PublicRadio.prototype.handleLink = function(client) {
+  return function(connection) {
+    connection.events().on('incoming', this.handleIncoming(connection));
+    this.addConnection(connection);
+    client.on('disconnected', this.handleDisconnect(connection));
+  }
+}
+
 PublicRadio.prototype.linkTo = function(host, port) {
   var client = new PublicRadioClient(host, port);
-  var self = this;
-
-  client.on('connected', function(connection) {
-    connection.events.on('incoming', function() {
-      self._broadcast(arguments, connection);
-    });
-
-    self.addConnection(connection);
-
-    client.on('disconnected', function(conn) {
-      self.removeConnection(connection);
-    });
-  });
-
+  client.on('connected', proxy(this.handleLink(client), this));
   client.connect();
 }
 
