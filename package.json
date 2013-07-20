@@ -11,6 +11,7 @@
   "license": "BSD",
   "dependencies": {
     "emit-stream": "~0.1.2",
-    "JSONStream": "~0.6.4"
+    "JSONStream": "~0.6.4",
+    "telephone_duplexer": "~0.0.1"
   }
 }

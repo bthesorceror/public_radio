@@ -1,8 +1,8 @@
-var net              = require('net'),
-    util             = require('util'),
-    proxy            = require('./lib/helpers').proxy,
-    ClientConnection = require('./lib/client_connection'),
-    EventEmitter     = require('events').EventEmitter;
+var net          = require('net'),
+    util         = require('util'),
+    proxy        = require('./lib/helpers').proxy,
+    Telephone    = require('telephone_duplexer'),
+    EventEmitter = require('events').EventEmitter;
 
 function PublicRadio(port) {
   this.server  = this.createServer();
@@ -17,8 +17,7 @@ PublicRadio.prototype.createServer = function() {
 }
 
 PublicRadio.prototype.handler = function(socket) {
-  var self = this;
-  var connection = new ClientConnection(socket);
+  var connection = new Telephone(socket);
   this.emit('connection', connection);
 
   var disconnect = proxy(function() {
@@ -33,9 +32,9 @@ PublicRadio.prototype.handler = function(socket) {
 
   this.connections.push(connection);
 
-  connection.events.on('incoming', function() {
-    self._broadcast(arguments, connection);
-  });
+  connection.events().on('incoming', proxy(function() {
+    this._broadcast(arguments, connection);
+  }, this));
 
   socket.on('close', disconnect)
   socket.on('end', disconnect)
@@ -107,7 +106,7 @@ PublicRadioClient.prototype.error = function(err) {
 }
 
 PublicRadioClient.prototype._handler = function() {
-  this.connection = new ClientConnection(this.client);
+  this.connection = new Telephone(this.client);
   this.emit('connected', this.connection);
 }
 
