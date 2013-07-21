@@ -2,10 +2,23 @@ var tape   = require('tape'),
     Server = require('./index').PublicRadio,
     Client = require('./index').PublicRadioClient;
 
-var timeout = setTimeout(function() { process.exit(1); }, 7000);
-var finished = function(t) {
-  clearTimeout(timeout);
-  t.end(); process.exit(0);
+function createTimeout() {
+  var timeout = setTimeout(function() { process.exit(1); }, 5000);
+  return {
+    clear: function() {
+      clearTimeout(timeout);
+    }
+  }
+}
+
+function createDone(servers) {
+  var timeout = createTimeout();
+  return function() {
+    timeout.clear();
+    servers.forEach(function(server) {
+      server.close();
+    });
+  }
 }
 
 tape('The whole tamale', function(t) {
@@ -16,6 +29,8 @@ tape('The whole tamale', function(t) {
   var client1 = new Client('localhost', 5002).connect();
   var client2 = new Client('localhost', 5002).connect();
   var client3 = new Client('localhost', 5001).connect();
+
+  var finished = createDone([server1, server2]);
 
   server1.linkTo('localhost', 5002);
 

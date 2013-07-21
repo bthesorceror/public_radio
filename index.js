@@ -21,6 +21,13 @@ PublicRadio.prototype.connections = function() {
   return this._connections;
 }
 
+PublicRadio.prototype.close = function() {
+  this.connections().forEach(function(conn) {
+    conn.close();
+  });
+  this.server.close();
+}
+
 PublicRadio.prototype.handler = function(socket) {
   var connection = new Telephone(socket);
   this.emit('connection', connection);
