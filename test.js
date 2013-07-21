@@ -34,11 +34,12 @@ tape('The whole tamale', function(t) {
   client3.on('connected', function(conn) {
     conn.on('client3', function(msg) {
       t.equal(msg, 'hello', 'client3 received event');
+      t.equal(server1.connections().length, 2, 'server1 currently has 2 connections');
       finished(t);
     });
   });
 
-  t.plan(5);
+  t.plan(6);
 
   setTimeout(function() {
     server2.on('server1', function(msg) {
