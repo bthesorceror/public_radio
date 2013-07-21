@@ -12,7 +12,7 @@
   "dependencies": {
     "emit-stream": "~0.1.2",
     "JSONStream": "~0.6.4",
-    "telephone_duplexer": "0.0.2"
+    "telephone_duplexer": "0.0.3"
   },
   "devDependencies": {
     "tape": "~1.0.4"
