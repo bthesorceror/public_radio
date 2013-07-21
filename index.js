@@ -5,8 +5,9 @@ var net          = require('net'),
     EventEmitter = require('events').EventEmitter;
 
 function PublicRadio(port) {
-  this.port    = port;
-  this.server  = this.createServer();
+  this.port   = port;
+  this.server = this.createServer();
+  this.events = new EventEmitter();
 }
 
 util.inherits(PublicRadio, EventEmitter);
@@ -28,8 +29,8 @@ PublicRadio.prototype.handler = function(socket) {
 
   var disconnect = proxy(function() {
     if (disconnected) return;
-    this.emit('disconnect', socket);
     this.removeConnection(connection);
+    this.emit('disconnect', connection);
     disconnected = true;
   }, this)
 
@@ -55,7 +56,7 @@ PublicRadio.prototype._broadcast = function(args, exclude) {
       conn.emit.apply(conn, args);
     }
   });
-  this.emit.apply(this, args);
+  this.events.emit.apply(this.events, args);
 }
 
 PublicRadio.prototype.broadcast = function() {
