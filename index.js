@@ -74,7 +74,7 @@ PublicRadio.prototype.addConnection = function(connection) {
 PublicRadio.prototype.removeConnection = function(connection) {
   var index = this.connections().indexOf(connection);
   if (index >= 0) {
-    this.connections().splice(index);
+    this.connections().splice(index, 1);
   }
 }
 
