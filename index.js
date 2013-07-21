@@ -123,6 +123,10 @@ PublicRadioClient.prototype._handler = function() {
   this.emit('connected', this.connection);
 }
 
+PublicRadioClient.prototype.close = function() {
+  this.client.end();
+}
+
 PublicRadioClient.prototype.connect = function() {
   this.client = net.createConnection({port: this.port, host: this.host}, proxy(this._handler, this));
   this.client.on('end', proxy(this.disconnected, this));
