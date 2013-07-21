@@ -24,9 +24,13 @@ PublicRadio.prototype.handler = function(socket) {
   var connection = new Telephone(socket);
   this.emit('connection', connection);
 
+  var disconnected = false;
+
   var disconnect = proxy(function() {
+    if (disconnected) return;
     this.emit('disconnect', socket);
     this.removeConnection(connection);
+    disconnected = true;
   }, this)
 
   var error = proxy(function(err) {
