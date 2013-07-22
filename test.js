@@ -24,8 +24,8 @@ function createDone(servers) {
 tape('The whole tamale', function(t) {
   t.plan(7);
 
-  var server2 = new Server(5002); server2.listen();
-  var server1 = new Server(5001); server1.listen();
+  var server2 = (new Server(5002)).listen();
+  var server1 = (new Server(5001)).listen();
   var client1 = new Client('localhost', 5002).connect();
   var client2 = new Client('localhost', 5002).connect();
   var client3 = new Client('localhost', 5001).connect();
@@ -56,7 +56,6 @@ tape('The whole tamale', function(t) {
       server1.on('disconnect', function(conn) {
         var connections = server1.connections();
         t.equal(connections.length, 1, 'server1 currently has 1 connections');
-        finished(t);
       });
       client3.close();
     });
@@ -76,5 +75,9 @@ tape('The whole tamale', function(t) {
 
     server1.broadcast('server1', 'hello');
   }, 1000);
+
+  t.on('end', function() {
+    finished();
+  });
 });
 
