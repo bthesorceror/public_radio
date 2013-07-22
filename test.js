@@ -278,6 +278,7 @@ function createDone(servers) {
     });
 
     t.on('end', function() {
+      client.close();
       done();
     });
   });
