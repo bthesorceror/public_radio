@@ -7,7 +7,7 @@ Status](https://travis-ci.org/bthesorceror/public_radio.png?branch=master)](http
 Usage
 =====
 
-Creating a server
+**Creating a server**
 
 ```javascript
 var Server = require('public_radio').PublicRadio;
@@ -17,7 +17,7 @@ var server = new Server(5000);
 server.listen();
 ```
 
-Creating a client
+**Creating a client**
 
 ```javascript
 var Client = require('public_radio').PublicRadioClient;
@@ -31,6 +31,63 @@ client.on('connected', function(conn) {
 client.connect();
 ```
 
+**Server linking to another server**
+
+```javascript
+
+server.linkTo('localhost', 5001);
+
+```
+
+**Server listening for an event**
+
+```javascript
+
+server.events().on('stock_update', function(symbol, price) {
+  // work with stock update
+});
+
+```
+
+**Server broadcasting an event**
+
+```javascript
+
+server.broadcast('stock_update', 'GOOG', 15.43);
+
+```
+
+**Client listening for an event**
+
+```javascript
+
+client.on('connected', function(conn) {
+  conn.on('stock_update', function(symbol, price) {
+    // work with stock update
+  });
+});
+
+```
+
+**Client emits event**
+
+```javascript
+
+client.on('connected', function(conn) {
+
+  conn.emit('stock_update', 'GOOG', 15.43);
+
+});
+
+```
+
+or
+
+```javascript
+
+client.connection.emit('stock_update', 'GOOG', 15.43);
+
+```
 
 Bigger Picture
 ==============
