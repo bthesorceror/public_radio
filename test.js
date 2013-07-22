@@ -2,6 +2,17 @@ var tape   = require('tape'),
     Server = require('./index').PublicRadio,
     Client = require('./index').PublicRadioClient;
 
+var porter = {
+  port: 5000,
+  next: function() {
+    this.port += 1;
+    return this.current();
+  },
+  current: function() {
+    return this.port;
+  }
+}
+
 function createTimeout() {
   var timeout = setTimeout(function() { process.exit(1); }, 5000);
   return {
@@ -21,63 +32,140 @@ function createDone(servers) {
   }
 }
 
-tape('The whole tamale', function(t) {
-  t.plan(7);
+(function() {
+  tape('server can communicate with client', function(t) {
+    var server = (new Server(porter.next())).listen(),
+        client = new Client('localhost', porter.current()).connect(),
+        done = createDone([server]);
 
-  var server2 = (new Server(5002)).listen();
-  var server1 = (new Server(5001)).listen();
-  var client1 = new Client('localhost', 5002).connect();
-  var client2 = new Client('localhost', 5002).connect();
-  var client3 = new Client('localhost', 5001).connect();
+    t.plan(1);
 
-  var finished = createDone([server1, server2]);
+    client.on('connected', function(conn) {
+      setTimeout(function() {
+        conn.on('message1', function(msg) {
+          t.equal(msg, 'hello', 'client received msg from server');
+        });
 
-  server1.linkTo('localhost', 5002);
+        server.broadcast('message1', 'hello');
+      }, 100);
+    });
 
-  client2.on('connected', function(conn) {
-    conn.on('client2', function(msg) {
-      t.equal(msg, 'hello', 'client2 received event');
-      conn.emit('client1', msg);
+    t.on('end', function() {
+      done();
     });
   });
 
-  client1.on('connected', function(conn) {
-    conn.on('client1', function(msg) {
-      t.equal(msg, 'hello', 'client1 received event');
-      conn.emit('client3', msg);
+  tape('client can communicate with server', function(t) {
+    var server = (new Server(porter.next())).listen(),
+        client = new Client('localhost', porter.current()).connect(),
+        done = createDone([server]);
+
+    t.plan(1);
+
+    client.on('connected', function(conn) {
+      setTimeout(function() {
+        server.events.on('message1', function(msg) {
+          t.equal(msg, 'hello', 'server received msg from client');
+        });
+
+        conn.emit('message1', 'hello');
+      }, 100);
+    });
+
+    t.on('end', function() {
+      done();
     });
   });
 
-  client3.on('connected', function(conn) {
-    conn.on('client3', function(msg) {
-      var connections = server1.connections();
-      t.equal(msg, 'hello', 'client3 received event');
-      t.equal(connections.length, 2, 'server1 currently has 2 connections');
-      server1.on('disconnect', function(conn) {
-        var connections = server1.connections();
-        t.equal(connections.length, 1, 'server1 currently has 1 connections');
+  tape('client can communicate with server', function(t) {
+    var server = (new Server(porter.next())).listen(),
+        client1 = new Client('localhost', porter.current()).connect(),
+        client2 = new Client('localhost', porter.current()).connect(),
+        done = createDone([server]);
+
+    t.plan(1);
+
+    client2.on('connected', function(conn) {
+      setTimeout(function() {
+        conn.on('message1', function(msg) {
+          t.equal(msg, 'hello', 'client2 received msg from client1');
+        });
+
+        client1.connection.emit('message1', 'hello');
+      }, 100);
+    });
+
+    t.on('end', function() {
+      done();
+    });
+  });
+})();
+
+(function() {
+
+  tape('The whole tamale', function(t) {
+    t.plan(7);
+    var port1 = porter.next();
+    var port2 = porter.next();
+
+    var server2 = (new Server(port1)).listen();
+    var server1 = (new Server(port2)).listen();
+
+    var finished = createDone([server1, server2]);
+
+    var part2 = function() {
+      server1.linkTo('localhost', port1);
+
+      var client1 = new Client('localhost', port1).connect();
+      var client2 = new Client('localhost', port1).connect();
+      var client3 = new Client('localhost', port2).connect();
+
+      client2.on('connected', function(conn) {
+        conn.on('client2', function(msg) {
+          t.equal(msg, 'hello', 'client2 received event');
+          conn.emit('client1', msg);
+        });
       });
-      client3.close();
+
+      client1.on('connected', function(conn) {
+        conn.on('client1', function(msg) {
+          t.equal(msg, 'hello', 'client1 received event');
+          conn.emit('client3', msg);
+        });
+      });
+
+      client3.on('connected', function(conn) {
+        conn.on('client3', function(msg) {
+          var connections = server1.connections();
+          t.equal(msg, 'hello', 'client3 received event');
+          t.equal(connections.length, 2, 'server1 currently has 2 connections');
+          server1.on('disconnect', function(conn) {
+            var connections = server1.connections();
+            t.equal(connections.length, 1, 'server1 currently has 1 connections');
+          });
+          client3.close();
+        });
+      });
+
+
+      setTimeout(function() {
+        server2.events.on('server1', function(msg) {
+          t.equal(msg, 'hello', 'server 2 receives event');
+          server2.broadcast('server2', msg);
+        });
+
+        server1.events.on('server2', function(msg) {
+          t.equal(msg, 'hello', 'server 1 receives event');
+          server2.broadcast('client2', msg);
+        });
+
+        server1.broadcast('server1', 'hello');
+      }, 1000);
+    };
+
+    setTimeout(part2, 1000);
+    t.on('end', function() {
+      finished();
     });
   });
-
-
-  setTimeout(function() {
-    server2.events.on('server1', function(msg) {
-      t.equal(msg, 'hello', 'server 2 receives event');
-      server2.broadcast('server2', msg);
-    });
-
-    server1.events.on('server2', function(msg) {
-      t.equal(msg, 'hello', 'server 1 receives event');
-      server2.broadcast('client2', msg);
-    });
-
-    server1.broadcast('server1', 'hello');
-  }, 1000);
-
-  t.on('end', function() {
-    finished();
-  });
-});
-
+})();
