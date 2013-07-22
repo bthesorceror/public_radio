@@ -102,6 +102,104 @@ function createDone(servers) {
 })();
 
 (function() {
+  tape('servers can communicate with each other', function(t) {
+    var server1 = (new Server(porter.next())).listen(),
+        server2 = (new Server(porter.next())).listen(),
+        done    = createDone([server1, server2]);
+    server1.linkTo('localhost', porter.current());
+
+    t.plan(2);
+
+    setTimeout(function() {
+
+      server1.events.on('message1', function(msg) {
+        t.equal(msg, 'hello', 'server2 two can send a message to server1');
+      });
+
+      server2.events.on('message2', function(msg) {
+        t.equal(msg, 'hello', 'server1 two can send a message to server2');
+      });
+
+      server2.broadcast('message1', 'hello');
+      server1.broadcast('message2', 'hello');
+
+    }, 5);
+
+    t.on('end', function() {
+      done();
+    });
+  });
+
+  tape('client can communicate with linked server', function(t) {
+    var server1 = (new Server(porter.next())).listen(),
+        server2 = (new Server(porter.next())).listen(),
+        client  = (new Client('localhost', porter.current())).connect(),
+        done    = createDone([server1, server2]);
+
+    server1.linkTo('localhost', porter.current());
+
+    t.plan(2);
+
+    client.on('connected', function(conn) {
+      conn.on('message2', function(msg) {
+        t.equal(msg, 'hello', 'server1 two can send a message to client');
+      });
+    });
+
+    setTimeout(function() {
+
+      server1.events.on('message1', function(msg) {
+        t.equal(msg, 'hello', 'server2 two can send a message to server1');
+      });
+
+
+      client.connection.emit('message1', 'hello');
+      server1.broadcast('message2', 'hello');
+
+    }, 5);
+
+    t.on('end', function() {
+      done();
+    });
+  });
+
+  tape('clients can communicate through linked server', function(t) {
+    var server1 = (new Server(porter.next())).listen(),
+        client1 = (new Client('localhost', porter.current())).connect(),
+        server2 = (new Server(porter.next())).listen(),
+        client2 = (new Client('localhost', porter.current())).connect(),
+        done    = createDone([server1, server2]);
+
+    server1.linkTo('localhost', porter.current());
+
+    t.plan(2);
+
+    client1.on('connected', function(conn) {
+      conn.on('message1', function(msg) {
+        t.equal(msg, 'hello', 'client2 two can send a message to client1');
+      });
+    });
+
+    client2.on('connected', function(conn) {
+      conn.on('message2', function(msg) {
+        t.equal(msg, 'hello', 'client1 two can send a message to client2');
+      });
+    });
+
+    setTimeout(function() {
+
+      client1.connection.emit('message2', 'hello');
+      client2.connection.emit('message1', 'hello');
+
+    }, 5);
+
+    t.on('end', function() {
+      done();
+    });
+  });
+})();
+
+(function() {
 
   tape('The whole tamale', function(t) {
     t.plan(7);
