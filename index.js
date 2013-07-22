@@ -70,17 +70,21 @@ PublicRadio.prototype.handler = function(socket) {
   connection.events().on('error', error);
 }
 
-PublicRadio.prototype._broadcast = function(args, exclude) {
+PublicRadio.prototype._clientBroadcast = function(args, exclude) {
   this.connections().forEach(function(conn) {
     if (conn != exclude) {
       conn.emit.apply(conn, args);
     }
   });
+}
+
+PublicRadio.prototype._broadcast = function(args, exclude) {
+  this._clientBroadcast(args, exclude);
   this.events().emit.apply(this.events(), args);
 }
 
 PublicRadio.prototype.broadcast = function() {
-  this._broadcast(arguments);
+  this._clientBroadcast(arguments);
 }
 
 PublicRadio.prototype.listen = function() {

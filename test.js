@@ -204,6 +204,29 @@ function createDone(servers) {
 })();
 
 (function() {
+  tape('server does not broadcast to itself', function(t) {
+    var server = (new Server(porter.next())).listen(),
+        done = createDone([server]);
+
+    t.plan(1);
+
+    var not_called = true;
+
+    server.events().on('message', function() {
+      not_called = false;
+    });
+
+    server.broadcast('message');
+
+    coffeeBreak(function() {
+      t.ok(not_called, 'server did not receive its own event');
+    });
+
+    t.on('end', function() {
+      done();
+    });
+  });
+
   tape('servers remove disconnected client', function(t) {
     var server = (new Server(porter.next())).listen(),
         client = new Client('localhost', porter.current()).connect(),
