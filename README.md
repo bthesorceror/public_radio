@@ -1,6 +1,8 @@
 Public Radio
 ------------
 
+Creating distributed applications with networked nodes through events.
+
 [![Build
 Status](https://travis-ci.org/bthesorceror/public_radio.png?branch=master)](https://travis-ci.org/bthesorceror/public_radio)
 
@@ -93,3 +95,41 @@ Bigger Picture
 ==============
 
 ![Topology](http://f.cl.ly/items/3K1X3J0Q1E0p0Z2z230K/public_radio.png)
+
+**Setting up this network**
+
+```javascript
+
+var Server = require('public_radio').PublicRadio,
+    Client = require('public_radio').PublicRadioClient;
+
+var server1 = (new Server(5000)).listen(),
+    server2 = (new Server(5001)).listen();
+
+server1.linkTo('localhost', 5001);
+
+var client1 = (new Client('localhost', 5000)),
+    client2 = (new Client('localhost', 5000)),
+    client3 = (new Client('localhost', 5001));
+
+client1.on('connected', function(conn) {
+
+});
+
+client1.connect();
+
+client2.on('connected', function(conn) {
+
+});
+
+client2.connect();
+
+client3.on('connected', function(conn) {
+
+});
+
+client3.connect();
+
+```
+
+**Any node can communicate with any other node**
