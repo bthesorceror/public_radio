@@ -1,8 +1,13 @@
 var net          = require('net'),
     util         = require('util'),
-    proxy        = require('./lib/helpers').proxy,
     Telephone    = require('telephone_duplexer'),
     EventEmitter = require('events').EventEmitter;
+
+function proxy(func, context) {
+  return function() {
+    func.apply(context, arguments);
+  }
+}
 
 function PublicRadio(port) {
   this.port   = port;
