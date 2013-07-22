@@ -47,7 +47,7 @@ function createDone(servers) {
         });
 
         server.broadcast('message1', 'hello');
-      }, 100);
+      }, 5);
     });
 
     t.on('end', function() {
@@ -69,7 +69,7 @@ function createDone(servers) {
         });
 
         conn.emit('message1', 'hello');
-      }, 100);
+      }, 5);
     });
 
     t.on('end', function() {
@@ -92,7 +92,7 @@ function createDone(servers) {
         });
 
         client1.connection.emit('message1', 'hello');
-      }, 100);
+      }, 5);
     });
 
     t.on('end', function() {
@@ -221,7 +221,7 @@ function createDone(servers) {
     setTimeout(function() {
       t.equal(server.connections().length, 1, 'server has 1 connection');
       client.close();
-    }, 10);
+    }, 5);
 
     t.on('end', function() {
       done();
