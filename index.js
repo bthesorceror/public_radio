@@ -12,10 +12,18 @@ function proxy(func, context) {
 function PublicRadio(port) {
   this.port   = port;
   this.server = this.createServer();
-  this.events = new EventEmitter();
+  this.setupEvents();
 }
 
 util.inherits(PublicRadio, EventEmitter);
+
+PublicRadio.prototype.setupEvents = function() {
+  this._events = new EventEmitter();
+}
+
+PublicRadio.prototype.events = function() {
+  return this._events;
+}
 
 PublicRadio.prototype.createServer = function() {
   return net.createServer(proxy(this.handler, this));
@@ -68,7 +76,7 @@ PublicRadio.prototype._broadcast = function(args, exclude) {
       conn.emit.apply(conn, args);
     }
   });
-  this.events.emit.apply(this.events, args);
+  this.events().emit.apply(this.events(), args);
 }
 
 PublicRadio.prototype.broadcast = function() {

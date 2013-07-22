@@ -3,7 +3,7 @@ var tape   = require('tape'),
     Client = require('./index').PublicRadioClient;
 
 function coffeeBreak(func) {
-  setTimeout(func, 5);
+  return setTimeout(func, 5);
 }
 
 var porter = {
@@ -68,7 +68,7 @@ function createDone(servers) {
 
     client.on('connected', function(conn) {
       coffeeBreak(function() {
-        server.events.on('message1', function(msg) {
+        server.events().on('message1', function(msg) {
           t.equal(msg, 'hello', 'server received msg from client');
         });
 
@@ -116,11 +116,11 @@ function createDone(servers) {
 
     coffeeBreak(function() {
 
-      server1.events.on('message1', function(msg) {
+      server1.events().on('message1', function(msg) {
         t.equal(msg, 'hello', 'server2 two can send a message to server1');
       });
 
-      server2.events.on('message2', function(msg) {
+      server2.events().on('message2', function(msg) {
         t.equal(msg, 'hello', 'server1 two can send a message to server2');
       });
 
@@ -152,7 +152,7 @@ function createDone(servers) {
 
     coffeeBreak(function() {
 
-      server1.events.on('message1', function(msg) {
+      server1.events().on('message1', function(msg) {
         t.equal(msg, 'hello', 'server2 two can send a message to server1');
       });
 
