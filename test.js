@@ -226,6 +226,9 @@ function createDone(servers) {
       done();
     });
   });
+})();
+
+(function() {
 
   tape('servers remove disconnected client', function(t) {
     var server = (new Server(porter.next())).listen(),
@@ -251,6 +254,84 @@ function createDone(servers) {
     });
 
     t.on('end', function() {
+      done();
+    });
+  });
+
+  tape("servers remove disconnected client on 'end'", function(t) {
+    var server = (new Server(porter.next())).listen(),
+        client = new Client('localhost', porter.current()).connect(),
+        done = createDone([server]);
+
+    t.plan(3);
+
+    coffeeBreak(function() {
+      var connection = server.connections()[0];
+
+      server.on('disconnect', function(conn) {
+        t.equal(conn, connection, 'correct connection removed');
+        t.equal(server.connections().length, 0, 'server has 0 connections');
+      });
+
+      t.equal(server.connections().length, 1, 'server has 1 connection');
+      connection.stream.emit('end');
+    });
+
+    t.on('end', function() {
+      done();
+    });
+  });
+
+  tape("servers remove disconnected client on 'close'", function(t) {
+    var server = (new Server(porter.next())).listen(),
+        client = new Client('localhost', porter.current()).connect(),
+        done = createDone([server]);
+
+    t.plan(3);
+
+    coffeeBreak(function() {
+      var connection = server.connections()[0];
+
+      server.on('disconnect', function(conn) {
+        t.equal(conn, connection, 'correct connection removed');
+        t.equal(server.connections().length, 0, 'server has 0 connections');
+      });
+
+      t.equal(server.connections().length, 1, 'server has 1 connection');
+      connection.stream.emit('close');
+    });
+
+    t.on('end', function() {
+      client.close();
+      done();
+    });
+  });
+
+  tape("servers remove disconnected client on 'error'", function(t) {
+    var server = (new Server(porter.next())).listen(),
+        client = new Client('localhost', porter.current()).connect(),
+        done = createDone([server]);
+
+    t.plan(4);
+
+    server.on('error', function(err) {
+      t.equal(err, 'blah');
+    });
+
+    coffeeBreak(function() {
+      var connection = server.connections()[0];
+
+      server.on('disconnect', function(conn) {
+        t.equal(conn, connection, 'correct connection removed');
+        t.equal(server.connections().length, 0, 'server has 0 connections');
+      });
+
+      t.equal(server.connections().length, 1, 'server has 1 connection');
+      connection.stream.emit('error', 'blah');
+    });
+
+    t.on('end', function() {
+      client.close();
       done();
     });
   });
