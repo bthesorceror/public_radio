@@ -2,6 +2,10 @@ var tape   = require('tape'),
     Server = require('./index').PublicRadio,
     Client = require('./index').PublicRadioClient;
 
+function coffeeBreak(func) {
+  setTimeout(func, 5);
+}
+
 var porter = {
   port: 5000,
   next: function() {
@@ -41,13 +45,13 @@ function createDone(servers) {
     t.plan(1);
 
     client.on('connected', function(conn) {
-      setTimeout(function() {
+      coffeeBreak(function() {
         conn.on('message1', function(msg) {
           t.equal(msg, 'hello', 'client received msg from server');
         });
 
         server.broadcast('message1', 'hello');
-      }, 5);
+      });
     });
 
     t.on('end', function() {
@@ -63,13 +67,13 @@ function createDone(servers) {
     t.plan(1);
 
     client.on('connected', function(conn) {
-      setTimeout(function() {
+      coffeeBreak(function() {
         server.events.on('message1', function(msg) {
           t.equal(msg, 'hello', 'server received msg from client');
         });
 
         conn.emit('message1', 'hello');
-      }, 5);
+      });
     });
 
     t.on('end', function() {
@@ -86,13 +90,13 @@ function createDone(servers) {
     t.plan(1);
 
     client2.on('connected', function(conn) {
-      setTimeout(function() {
+      coffeeBreak(function() {
         conn.on('message1', function(msg) {
           t.equal(msg, 'hello', 'client2 received msg from client1');
         });
 
         client1.connection.emit('message1', 'hello');
-      }, 5);
+      });
     });
 
     t.on('end', function() {
@@ -110,7 +114,7 @@ function createDone(servers) {
 
     t.plan(2);
 
-    setTimeout(function() {
+    coffeeBreak(function() {
 
       server1.events.on('message1', function(msg) {
         t.equal(msg, 'hello', 'server2 two can send a message to server1');
@@ -123,7 +127,7 @@ function createDone(servers) {
       server2.broadcast('message1', 'hello');
       server1.broadcast('message2', 'hello');
 
-    }, 5);
+    });
 
     t.on('end', function() {
       done();
@@ -146,7 +150,7 @@ function createDone(servers) {
       });
     });
 
-    setTimeout(function() {
+    coffeeBreak(function() {
 
       server1.events.on('message1', function(msg) {
         t.equal(msg, 'hello', 'server2 two can send a message to server1');
@@ -156,7 +160,7 @@ function createDone(servers) {
       client.connection.emit('message1', 'hello');
       server1.broadcast('message2', 'hello');
 
-    }, 5);
+    });
 
     t.on('end', function() {
       done();
@@ -186,12 +190,12 @@ function createDone(servers) {
       });
     });
 
-    setTimeout(function() {
+    coffeeBreak(function() {
 
       client1.connection.emit('message2', 'hello');
       client2.connection.emit('message1', 'hello');
 
-    }, 5);
+    });
 
     t.on('end', function() {
       done();
@@ -218,10 +222,10 @@ function createDone(servers) {
       t.equal(server.connections().length, 0, 'server has 0 connections');
     });
 
-    setTimeout(function() {
+    coffeeBreak(function() {
       t.equal(server.connections().length, 1, 'server has 1 connection');
       client.close();
-    }, 5);
+    });
 
     t.on('end', function() {
       done();
