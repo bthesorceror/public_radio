@@ -42,40 +42,37 @@ PublicRadio.prototype.close = function() {
   this.server.close();
 }
 
+PublicRadio.prototype.setupConnection = function(socket) {
+  var connection = new Telephone(socket);
+  this.emit('connection', connection);
+
+  var disconnected = false;
+
+  var disconnect = proxy(function() {
+    if (disconnected) return;
+    this.removeConnection(connection);
+    this.emit('disconnect', connection);
+    disconnected = true;
+  }, this)
+
+  var error = proxy(function(err) {
+    this.emit('error', err);
+    disconnect();
+  }, this)
+
+  this.addConnection(connection);
+
+  connection.events().on('incoming', this.handleIncoming(connection));
+  connection.events().on('close', disconnect)
+  connection.events().on('end', disconnect)
+  connection.events().on('error', error);
+}
+
 PublicRadio.prototype.handler = function(socket) {
-  function cont() {
-    var connection = new Telephone(socket);
-    this.emit('connection', connection);
-
-    var disconnected = false;
-
-    var disconnect = proxy(function() {
-      if (disconnected) return;
-      this.removeConnection(connection);
-      this.emit('disconnect', connection);
-      disconnected = true;
-    }, this)
-
-    var error = proxy(function(err) {
-      this.emit('error', err);
-      disconnect();
-    }, this)
-
-    this.addConnection(connection);
-
-    connection.events().on('incoming', proxy(function() {
-      this._broadcast(arguments, connection);
-    }, this));
-
-    connection.events().on('close', disconnect)
-    connection.events().on('end', disconnect)
-    connection.events().on('error', error);
-  }
-  var self = this;
-  socket.once('data', function(data) {
+  socket.once('data', proxy(function(data) {
     socket.write(Guid.raw() + "\r\n");
-    cont.call(self);
-  });
+    this.setupConnection(socket);
+  }, this));
 }
 
 PublicRadio.prototype._clientBroadcast = function(args, exclude) {
