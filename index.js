@@ -1,5 +1,6 @@
 var net          = require('net'),
     util         = require('util'),
+    Guid         = require('guid'),
     Telephone    = require('telephone_duplexer'),
     EventEmitter = require('events').EventEmitter;
 
@@ -42,32 +43,39 @@ PublicRadio.prototype.close = function() {
 }
 
 PublicRadio.prototype.handler = function(socket) {
-  var connection = new Telephone(socket);
-  this.emit('connection', connection);
+  function cont() {
+    var connection = new Telephone(socket);
+    this.emit('connection', connection);
 
-  var disconnected = false;
+    var disconnected = false;
 
-  var disconnect = proxy(function() {
-    if (disconnected) return;
-    this.removeConnection(connection);
-    this.emit('disconnect', connection);
-    disconnected = true;
-  }, this)
+    var disconnect = proxy(function() {
+      if (disconnected) return;
+      this.removeConnection(connection);
+      this.emit('disconnect', connection);
+      disconnected = true;
+    }, this)
 
-  var error = proxy(function(err) {
-    this.emit('error', err);
-    disconnect();
-  }, this)
+    var error = proxy(function(err) {
+      this.emit('error', err);
+      disconnect();
+    }, this)
 
-  this.addConnection(connection);
+    this.addConnection(connection);
 
-  connection.events().on('incoming', proxy(function() {
-    this._broadcast(arguments, connection);
-  }, this));
+    connection.events().on('incoming', proxy(function() {
+      this._broadcast(arguments, connection);
+    }, this));
 
-  connection.events().on('close', disconnect)
-  connection.events().on('end', disconnect)
-  connection.events().on('error', error);
+    connection.events().on('close', disconnect)
+    connection.events().on('end', disconnect)
+    connection.events().on('error', error);
+  }
+  var self = this;
+  socket.once('data', function(data) {
+    socket.write(Guid.raw() + "\r\n");
+    cont.call(self);
+  });
 }
 
 PublicRadio.prototype._clientBroadcast = function(args, exclude) {
@@ -148,8 +156,12 @@ PublicRadioClient.prototype.error = function(err) {
 }
 
 PublicRadioClient.prototype._handler = function() {
-  this.connection = new Telephone(this.client);
-  this.emit('connected', this.connection);
+  this.client.write('\r\n');
+  this.client.once('data', proxy(function(data) {
+    this.guid = data.toString().trim();
+    this.connection = new Telephone(this.client);
+    this.emit('connected', this.connection);
+  }, this));
 }
 
 PublicRadioClient.prototype.close = function() {
