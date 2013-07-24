@@ -47,7 +47,6 @@ PublicRadio.prototype.setupConnection = function(socket) {
   this.emit('connection', connection);
 
   var disconnected = false;
-
   var disconnect = proxy(function() {
     if (disconnected) return;
     this.removeConnection(connection);
@@ -70,7 +69,11 @@ PublicRadio.prototype.setupConnection = function(socket) {
 
 PublicRadio.prototype.handler = function(socket) {
   socket.once('data', proxy(function(data) {
-    socket.write(Guid.raw() + "\r\n");
+    var guid = data.toString().trim();
+    if (!guid) {
+      guid = Guid.raw();
+    }
+    socket.write(guid + "\r\n");
     this.setupConnection(socket);
   }, this));
 }
@@ -153,11 +156,10 @@ PublicRadioClient.prototype.error = function(err) {
 }
 
 PublicRadioClient.prototype._handler = function() {
-  this.client.write('\r\n');
+  this.client.write((this.guid || '') + '\r\n');
   this.client.once('data', proxy(function(data) {
     this.guid = data.toString().trim();
-    this.connection = new Telephone(this.client);
-    this.emit('connected', this.connection);
+    this.emit('connected', this.connection = new Telephone(this.client));
   }, this));
 }
 
