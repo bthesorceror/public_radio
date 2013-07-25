@@ -45,26 +45,7 @@ PublicRadio.prototype.close = function() {
 PublicRadio.prototype.setupConnection = function(socket) {
   var connection = new Telephone(socket);
   this.emit('connection', connection);
-
-  var disconnected = false;
-  var disconnect = proxy(function() {
-    if (disconnected) return;
-    this.removeConnection(connection);
-    this.emit('disconnect', connection);
-    disconnected = true;
-  }, this)
-
-  var error = proxy(function(err) {
-    this.emit('error', err);
-    disconnect();
-  }, this)
-
   this.addConnection(connection);
-
-  connection.events().on('incoming', this.handleIncoming(connection));
-  connection.events().on('close', disconnect)
-  connection.events().on('end', disconnect)
-  connection.events().on('error', error);
 }
 
 PublicRadio.prototype.handler = function(socket) {
@@ -101,6 +82,23 @@ PublicRadio.prototype.listen = function() {
 }
 
 PublicRadio.prototype.addConnection = function(connection) {
+  var disconnected = false;
+  var disconnect = proxy(function() {
+    if (disconnected) return;
+    this.removeConnection(connection);
+    this.emit('disconnect', connection);
+    disconnected = true;
+  }, this)
+
+  var error = proxy(function(err) {
+    this.emit('error', err);
+    disconnect();
+  }, this)
+
+  connection.events().on('incoming', this.handleIncoming(connection));
+  connection.events().on('close', disconnect)
+  connection.events().on('end', disconnect)
+  connection.events().on('error', error);
   this.connections().push(connection);
 }
 
@@ -124,16 +122,16 @@ PublicRadio.prototype.handleDisconnect = function(connection) {
 }
 
 PublicRadio.prototype.handleLink = function(client) {
+  var self = this;
   return function(connection) {
-    connection.events().on('incoming', this.handleIncoming(connection));
-    this.addConnection(connection);
-    client.on('disconnected', this.handleDisconnect(connection));
+    self.addConnection(connection);
+    client.on('disconnected', self.handleDisconnect(connection));
   }
 }
 
 PublicRadio.prototype.linkTo = function(host, port) {
   var client = new PublicRadioClient(host, port);
-  client.on('connected', proxy(this.handleLink(client), this));
+  client.on('connected', this.handleLink(client));
   client.connect();
 }
 
