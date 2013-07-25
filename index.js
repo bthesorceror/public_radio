@@ -95,7 +95,7 @@ PublicRadio.prototype.addConnection = function(connection) {
     disconnect();
   }, this)
 
-  connection.events().on('incoming', this.handleIncoming(connection));
+  connection.onEvent(this.handleIncoming(connection));
   connection.events().on('close', disconnect)
   connection.events().on('end', disconnect)
   connection.events().on('error', error);
@@ -110,8 +110,8 @@ PublicRadio.prototype.removeConnection = function(connection) {
 }
 
 PublicRadio.prototype.handleIncoming = function(connection) {
-  return proxy(function() {
-    this._broadcast(arguments, connection);
+  return proxy(function(event, args) {
+    this._broadcast([event].concat(args), connection);
   }, this);
 }
 
