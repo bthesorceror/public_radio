@@ -48,11 +48,15 @@ PublicRadio.prototype.setupConnection = function(socket) {
   this.addConnection(connection);
 }
 
+PublicRadio.prototype.assignGUID = function(data, socket) {
+  var guid = data.toString().trim();
+  if (!guid) { guid = Guid.raw(); }
+  socket.write(guid + "\r\n");
+}
+
 PublicRadio.prototype.handler = function(socket) {
   socket.once('data', proxy(function(data) {
-    var guid = data.toString().trim();
-    if (!guid) { guid = Guid.raw(); }
-    socket.write(guid + "\r\n");
+    this.assignGUID(data, socket);
     this.setupConnection(socket);
   }, this));
 }
