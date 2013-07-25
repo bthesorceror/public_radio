@@ -51,9 +51,7 @@ PublicRadio.prototype.setupConnection = function(socket) {
 PublicRadio.prototype.handler = function(socket) {
   socket.once('data', proxy(function(data) {
     var guid = data.toString().trim();
-    if (!guid) {
-      guid = Guid.raw();
-    }
+    if (!guid) { guid = Guid.raw(); }
     socket.write(guid + "\r\n");
     this.setupConnection(socket);
   }, this));
@@ -115,17 +113,10 @@ PublicRadio.prototype.handleIncoming = function(connection) {
   }, this);
 }
 
-PublicRadio.prototype.handleDisconnect = function(connection) {
-  return proxy(function() {
-    this.removeConnection(connection);
-  }, this);
-}
-
 PublicRadio.prototype.handleLink = function(client) {
   var self = this;
   return function(connection) {
     self.addConnection(connection);
-    client.on('disconnected', self.handleDisconnect(connection));
   }
 }
 
