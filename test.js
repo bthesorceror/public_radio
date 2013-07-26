@@ -18,7 +18,7 @@ var porter = {
 }
 
 function createTimeout() {
-  var timeout = setTimeout(function() { process.exit(1); }, 5000);
+  var timeout = setTimeout(function() { process.exit(1); }, 7000);
   return {
     clear: function() {
       clearTimeout(timeout);
