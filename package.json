@@ -1,7 +1,7 @@
 {
   "name": "public_radio",
   "version": "0.0.1",
-  "description": "Wrapper for multicasting with emitstream",
+  "description": "Build highly distributed services by allowing your node applications to share emitted events over tcp socket connections.",
   "main": "index.js",
   "scripts": {
     "test": "node test.js"
