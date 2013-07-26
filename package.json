@@ -7,6 +7,12 @@
     "test": "node test.js"
   },
   "repository": "http://github.com/bthesorceror/public_radio",
+  "keywords": [
+    "events",
+    "networking",
+    "graphs",
+    "tcp"
+  ],
   "author": "Brandon Farmer",
   "license": "BSD",
   "dependencies": {
