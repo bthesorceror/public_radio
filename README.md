@@ -1,6 +1,18 @@
 ![Topology](http://f.cl.ly/items/44350z3u2U0s2g2S3I0M/public_radio_header.png)
 
-Creating distributed applications with networked nodes through events.
+Build highly distributed services by allowing your node applications to share emitted events over tcp socket
+connections.
+
+How it works and what its for
+=============================
+
+Applications can act as a server (allowing for incoming connections) or a
+client (connecting to a server). When a connection is made the stream is then
+converted to an event emitter using @substack's emit-stream. The advantage of
+Public Radio is that it allows you to create a graph of nodes made up of
+server and clients that can emit events that will be received by all the other
+nodes, as well as allowing them to bind callback to specific events they are
+interested in.
 
 [![Build
 Status](https://travis-ci.org/bthesorceror/public_radio.png?branch=master)](https://travis-ci.org/bthesorceror/public_radio)
@@ -8,7 +20,7 @@ Status](https://travis-ci.org/bthesorceror/public_radio.png?branch=master)](http
 Usage
 =====
 
-**Creating a server**
+**Creating a server that will listen for incoming connections**
 
 ```javascript
 var Server = require('public_radio').PublicRadio;
@@ -18,7 +30,7 @@ var server = new Server(5000);
 server.listen();
 ```
 
-**Creating a client**
+**Creating a client to connect to a server**
 
 ```javascript
 var Client = require('public_radio').PublicRadioClient;
@@ -32,7 +44,8 @@ client.on('connected', function(conn) {
 client.connect();
 ```
 
-**Server linking to another server**
+**Connect servers to other servers to share your events with them and their
+clients**
 
 ```javascript
 
@@ -40,7 +53,7 @@ server.linkTo('localhost', 5001);
 
 ```
 
-**Server listening for an event**
+**Setting up a listener for an event on a server**
 
 ```javascript
 
@@ -50,7 +63,7 @@ server.events().on('stock_update', function(symbol, price) {
 
 ```
 
-**Server broadcasting an event**
+**Emitting an event from a server**
 
 ```javascript
 
@@ -58,7 +71,7 @@ server.broadcast('stock_update', 'GOOG', 15.43);
 
 ```
 
-**Client listening for an event**
+**Setting up a listener for an event on a client**
 
 ```javascript
 
@@ -70,7 +83,7 @@ client.on('connected', function(conn) {
 
 ```
 
-**Client emits event**
+**Emitting an event from the client**
 
 ```javascript
 
@@ -130,5 +143,3 @@ client3.on('connected', function(conn) {
 client3.connect();
 
 ```
-
-**Any node can communicate with any other node**
