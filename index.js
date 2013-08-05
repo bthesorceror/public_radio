@@ -1,52 +1,16 @@
-var net          = require('net'),
-    util         = require('util'),
-    Guid         = require('guid'),
-    Telephone    = require('telephone_duplexer'),
-    EventEmitter = require('events').EventEmitter;
-
-function proxy(func, context) {
-  return function() {
-    func.apply(context, arguments);
-  }
-}
-
-var ServerStream = function(connections) {
-  this.connections = connections;
-};
-
-require('util').inherits(ServerStream, EventEmitter);
-
-ServerStream.prototype.write = function () {
-  var args = Array.prototype.slice.call(arguments, 0);
-  this.connections.forEach(function(conn) {
-    conn.write.apply(conn, args);
-  });
-};
-
-ServerStream.prototype.end = function (data) {
-  var args = Array.prototype.slice.call(arguments, 0);
-  this.connections.forEach(function(conn) {
-    conn.end.apply(conn, args);
-  });
-};
-
+var net          = require('net');
+var util         = require('util');
+var Telephone    = require('telephone_duplexer');
+var proxy        = require('./proxy');
+var ServerStream = require('./server_stream');
 
 function PublicRadio(port) {
   this.port   = port;
   this.server = this.createServer();
   this.stream = new ServerStream(this.connections());
-  this.setupEvents();
+  this.events = new Telephone(this.stream);
 }
-
-util.inherits(PublicRadio, EventEmitter);
-
-PublicRadio.prototype.setupEvents = function() {
-  this._events = new Telephone(this.stream);
-}
-
-PublicRadio.prototype.events = function() {
-  return this._events;
-}
+util.inherits(PublicRadio, require('events').EventEmitter);
 
 PublicRadio.prototype.createServer = function() {
   return net.createServer(proxy(this.setupConnection, this));
@@ -79,7 +43,7 @@ PublicRadio.prototype._clientBroadcast = function(data, exclude) {
 }
 
 PublicRadio.prototype.broadcast = function() {
-  this.events().emit.apply(this._events, arguments);
+  this.events.emit.apply(this.events, arguments);
 }
 
 PublicRadio.prototype.listen = function() {
@@ -126,42 +90,3 @@ PublicRadio.prototype.linkTo = function(host, port) {
 }
 
 exports.PublicRadio = PublicRadio;
-
-// ------------------------------------ //
-
-function PublicRadioClient(host, port) {
-  this.host = host;
-  this.port = port;
-}
-
-util.inherits(PublicRadioClient, EventEmitter);
-
-PublicRadioClient.prototype.disconnected = function() {
-  if (!this.disconnected) {
-  this.emit('disconnected', this.connection);
-    this.disconnected = true;
-  }
-}
-
-PublicRadioClient.prototype.error = function(err) {
-  this.emit('error', err);
-  this.disconnected();
-}
-
-PublicRadioClient.prototype._handler = function() {
-  this.disconnected = false;
-  this.emit('connected', this.connection = new Telephone(this.client));
-}
-
-PublicRadioClient.prototype.close = function() {
-  this.client.end();
-}
-
-PublicRadioClient.prototype.connect = function() {
-  this.client = net.createConnection({port: this.port, host: this.host}, proxy(this._handler, this));
-  this.client.on('end', proxy(this.disconnected, this));
-  this.client.on('error', proxy(this.error, this));
-  return this;
-}
-
-exports.PublicRadioClient = PublicRadioClient;
