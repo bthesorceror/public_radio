@@ -274,7 +274,7 @@ function createDone(servers) {
       });
 
       t.equal(server.connections().length, 1, 'server has 1 connection');
-      connection.stream.emit('end');
+      connection.emit('end');
     });
 
     t.on('end', function() {
@@ -299,7 +299,7 @@ function createDone(servers) {
       });
 
       t.equal(server.connections().length, 1, 'server has 1 connection');
-      connection.stream.emit('close');
+      connection.emit('close');
     });
 
     t.on('end', function() {
@@ -328,7 +328,7 @@ function createDone(servers) {
       });
 
       t.equal(server.connections().length, 1, 'server has 1 connection');
-      connection.stream.emit('error', 'blah');
+      connection.emit('error', 'blah');
     });
 
     t.on('end', function() {
