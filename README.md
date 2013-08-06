@@ -23,7 +23,7 @@ Usage
 **Creating a server that will listen for incoming connections**
 
 ```javascript
-var Server = require('public_radio').PublicRadio;
+var Server = require('public_radio').Server;
 
 var server = new Server(5000);
 
@@ -33,7 +33,7 @@ server.listen();
 **Creating a client to connect to a server**
 
 ```javascript
-var Client = require('public_radio').PublicRadioClient;
+var Client = require('public_radio').Client;
 
 var client = new Client('localhost', 5000);
 
@@ -112,8 +112,8 @@ Bigger Picture
 
 ```javascript
 
-var Server = require('public_radio').PublicRadio,
-    Client = require('public_radio').PublicRadioClient;
+var Server = require('public_radio').Server,
+    Client = require('public_radio').Client;
 
 var server1 = (new Server(5000)).listen(),
     server2 = (new Server(5001)).listen();
