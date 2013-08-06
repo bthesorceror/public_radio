@@ -7,9 +7,7 @@ How it works and what it's for
 =============================
 
 Applications can act as a server (allowing for incoming connections) or a
-client (connecting to a server). When a connection is made the stream is then
-converted to an event emitter using @substack's emit-stream. The advantage of
-Public Radio is that it allows you to create a graph of nodes made up of
+client (connecting to a server). Public Radio allows you to create a graph of nodes made up of
 server and clients that can emit events that will be received by all the other
 nodes, as well as allowing them to bind callbacks to specific events they are
 interested in.
