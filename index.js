@@ -51,33 +51,41 @@ PublicRadio.prototype.listen = function() {
   return this;
 }
 
-PublicRadio.prototype.addConnection = function(connection) {
-  this.connections().push(connection);
-
-  var disconnected = false;
-  var disconnect = proxy(function() {
-    if (disconnected) return;
-    this.removeConnection(connection);
-    this.emit('disconnect', connection);
-    disconnected = true;
-  }, this)
-
-  var error = proxy(function(err) {
-    this.emit('error', err);
-    disconnect();
-  }, this)
-
-  connection.on('data', proxy(function(data) {
-    this._clientBroadcast(data, connection);
-  }, this))
-
-  connection.on('end', disconnect)
-  connection.on('close', disconnect)
-  connection.on('error', error);
+PublicRadio.prototype.createDataHandler = function(socket) {
+  return proxy(function(data) {
+    this._clientBroadcast(data, socket);
+  }, this);
 }
 
-PublicRadio.prototype.removeConnection = function(connection) {
-  var index = this.connections().indexOf(connection);
+PublicRadio.prototype.createDisconnectHandler = function(socket) {
+  disconnected = false;
+  return proxy(function() {
+    if (disconnected) return;
+    this.removeConnection(socket);
+    this.emit('disconnect', socket);
+    disconnected = true;
+  }, this)
+}
+
+PublicRadio.prototype.createErrorHandler = function(socket) {
+  return proxy(function(err) {
+    this.emit('error', err);
+    this.removeConnection(socket);
+  }, this)
+}
+
+PublicRadio.prototype.addConnection = function(socket) {
+  this.connections().push(socket);
+  var handleDisconnect = this.createDisconnectHandler(socket);
+
+  socket.on('data', this.createDataHandler(socket));
+  socket.on('end', handleDisconnect)
+  socket.on('close', handleDisconnect)
+  socket.on('error', this.createErrorHandler(socket));
+}
+
+PublicRadio.prototype.removeConnection = function(socket) {
+  var index = this.connections().indexOf(socket);
   if (index >= 0) {
     this.connections().splice(index, 1);
   }
@@ -89,4 +97,7 @@ PublicRadio.prototype.linkTo = function(host, port) {
   }, this));
 }
 
-exports.PublicRadio = PublicRadio;
+module.exports = {
+  Server: PublicRadio,
+  Client: require('./client')
+};

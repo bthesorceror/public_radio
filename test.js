@@ -1,6 +1,6 @@
-var tape   = require('tape'),
-    Server = require('./index').PublicRadio,
-    Client = require('./client');
+var tape   = require('tape');
+var Server = require('./index').Server;
+var Client = require('./index').Client;
 
 function coffeeBreak(func) {
   return setTimeout(func, 5);
@@ -38,9 +38,9 @@ function createDone(servers) {
 
 (function() {
   tape('server can communicate with client', function(t) {
-    var server = (new Server(porter.next())).listen(),
-        client = new Client('localhost', porter.current()).connect(),
-        done = createDone([server]);
+    var server = (new Server(porter.next())).listen();
+    var client = new Client('localhost', porter.current()).connect();
+    var done = createDone([server]);
 
     t.plan(2);
 
@@ -180,29 +180,37 @@ function createDone(servers) {
 
     server1.linkTo('localhost', porter.current());
 
-    t.plan(2);
+    t.plan(4);
 
     client1.on('connected', function(conn) {
-      conn.on('message1', function(msg) {
+      conn.on('message1', function(msg, reply) {
         t.equal(msg, 'hello', 'client2 two can send a message to client1');
+        reply('Farmer');
       });
     });
 
     client2.on('connected', function(conn) {
-      conn.on('message2', function(msg) {
+      conn.on('message2', function(msg, reply) {
         t.equal(msg, 'hello', 'client1 two can send a message to client2');
+        reply('Brandon');
       });
     });
 
     coffeeBreak(function() {
 
-      client1.connection.emit('message2', 'hello');
-      client2.connection.emit('message1', 'hello');
+      client1.connection.emit('message2', 'hello', function(name) {
+        t.equal(name, 'Brandon', 'client 2 passes back correct argument');
+      });
+      client2.connection.emit('message1', 'hello', function(name) {
+        t.equal(name, 'Farmer', 'client 1 passes back correct argument');
+      });
 
     });
 
     t.on('end', function() {
       done();
+      client1.connection.close();
+      client2.connection.close();
     });
   });
 })();
@@ -313,25 +321,24 @@ function createDone(servers) {
   });
 
   tape("servers remove disconnected client on 'error'", function(t) {
-    var server = (new Server(porter.next())).listen(),
-        client = new Client('localhost', porter.current()).connect(),
-        done = createDone([server]);
+    var server = (new Server(porter.next())).listen();
+    var client = new Client('localhost', porter.current()).connect();
+    var done   = createDone([server]);
 
-    t.plan(4);
+    t.plan(3);
 
     server.on('error', function(err) {
-      t.equal(err, 'blah');
+      t.equal(err, 'blah', 'server gets correct error');
+      coffeeBreak(function() {
+        t.equal(server.connections().length, 0, 'server has 0 connections');
+      });
     });
 
     coffeeBreak(function() {
       var connection = server.connections()[0];
 
-      server.on('disconnect', function(conn) {
-        t.equal(conn, connection, 'correct connection removed');
-        t.equal(server.connections().length, 0, 'server has 0 connections');
-      });
-
       t.equal(server.connections().length, 1, 'server has 1 connection');
+
       connection.emit('error', 'blah');
     });
 
