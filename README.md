@@ -103,6 +103,33 @@ client.connection.emit('stock_update', 'GOOG', 15.43);
 
 ```
 
+Callbacks
+=========
+
+When an event is emitted the final argument can be a function
+
+```javascript
+
+client.on('connected', function(conn) {
+
+  conn.emit('stock_update', 'GOOG', 15.43, function(alert) {
+    // do something with alert
+  });
+
+});
+
+```
+
+On the receiving end of this event the listener will be given a reply function as the final argument
+
+```javascript
+
+server.events.on('stock_update', function(symbol, price, reply) {
+  reply('SELL SELL SELL!');
+});
+
+```
+
 Bigger Picture
 ==============
 
