@@ -106,7 +106,9 @@ client.connection.emit('stock_update', 'GOOG', 15.43);
 Callbacks
 =========
 
-When an event is emitted the final argument can be a function
+The final argument of the emitted event can be a function
+
+(replies have to be received within 60 seconds)
 
 ```javascript
 
@@ -120,7 +122,7 @@ client.on('connected', function(conn) {
 
 ```
 
-On the receiving end of this event the listener will be given a reply function as the final argument
+The listener can reply to the emitting node via a function pass as the final argument
 
 ```javascript
 
@@ -129,6 +131,8 @@ server.events.on('stock_update', function(symbol, price, reply) {
 });
 
 ```
+
+So in this case the function passed to emit will be called with 'SELL SELL SELL!'
 
 Bigger Picture
 ==============

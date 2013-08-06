@@ -76,6 +76,7 @@ PublicRadio.prototype.createErrorHandler = function(socket) {
 
 PublicRadio.prototype.addConnection = function(socket) {
   this.connections().push(socket);
+
   var handleDisconnect = this.createDisconnectHandler(socket);
 
   socket.on('data', this.createDataHandler(socket));
