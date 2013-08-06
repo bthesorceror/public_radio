@@ -57,7 +57,7 @@ server.linkTo('localhost', 5001);
 
 ```javascript
 
-server.events().on('stock_update', function(symbol, price) {
+server.events.on('stock_update', function(symbol, price) {
   // work with stock update
 });
 
