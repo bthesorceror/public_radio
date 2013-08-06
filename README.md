@@ -120,7 +120,7 @@ client.on('connected', function(conn) {
 
 ```
 
-The listener can reply to the emitting node via a function pass as the final argument
+The listener can reply to the emitting node via a function passed as the final argument
 
 ```javascript
 

@@ -3,7 +3,7 @@ var Server = require('./index').Server;
 var Client = require('./index').Client;
 
 function coffeeBreak(func) {
-  return setTimeout(func, 10);
+  return setTimeout(func, 50);
 }
 
 var porter = {
