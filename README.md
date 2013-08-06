@@ -3,7 +3,7 @@
 Build highly distributed services by allowing your node applications to share emitted events over tcp socket
 connections.
 
-How it works and what its for
+How it works and what it's for
 =============================
 
 Applications can act as a server (allowing for incoming connections) or a
