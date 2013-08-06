@@ -3,7 +3,7 @@ var Server = require('./index').Server;
 var Client = require('./index').Client;
 
 function coffeeBreak(func) {
-  return setTimeout(func, 5);
+  return setTimeout(func, 10);
 }
 
 var porter = {
@@ -201,6 +201,7 @@ function createDone(servers) {
       client1.connection.emit('message2', 'hello', function(name) {
         t.equal(name, 'Brandon', 'client 2 passes back correct argument');
       });
+
       client2.connection.emit('message1', 'hello', function(name) {
         t.equal(name, 'Farmer', 'client 1 passes back correct argument');
       });
