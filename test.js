@@ -58,7 +58,6 @@ function createDone(servers) {
     });
 
     t.on('end', function() {
-      server.events.close();
       done();
     });
   });
@@ -210,8 +209,6 @@ function createDone(servers) {
 
     t.on('end', function() {
       done();
-      client1.connection.close();
-      client2.connection.close();
     });
   });
 })();
@@ -291,7 +288,6 @@ function createDone(servers) {
     });
 
     t.on('end', function() {
-      client.close();
       done();
     });
   });
@@ -316,7 +312,6 @@ function createDone(servers) {
     });
 
     t.on('end', function() {
-      client.close();
       done();
     });
   });
@@ -344,7 +339,6 @@ function createDone(servers) {
     });
 
     t.on('end', function() {
-      client.close();
       done();
     });
   });

@@ -10,9 +10,11 @@ function PublicRadioClient(host, port) {
 
 PublicRadioClient.prototype.disconnected = function() {
   if (!this.disconnected) {
-  this.emit('disconnected', this.connection);
+    this.emit('disconnected', this.connection);
     this.disconnected = true;
   }
+  this.client.destroy();
+  this.connection.close();
 }
 
 PublicRadioClient.prototype.error = function(err) {
@@ -27,11 +29,13 @@ PublicRadioClient.prototype._handler = function() {
 
 PublicRadioClient.prototype.close = function() {
   this.client.end();
+  this.connection.close();
 }
 
 PublicRadioClient.prototype.connect = function() {
   this.client = (require('net')).createConnection({port: this.port, host: this.host}, proxy(this._handler, this));
   this.client.on('end', proxy(this.disconnected, this));
+  this.client.on('close', proxy(this.disconnected, this));
   this.client.on('error', proxy(this.error, this));
   return this;
 }

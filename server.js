@@ -23,8 +23,9 @@ PublicRadio.prototype.connections = function() {
 
 PublicRadio.prototype.close = function() {
   this.connections().forEach(function(conn) {
-    conn.end();
+    conn.destroy();
   });
+  this.events.close();
   this.server.close();
 }
 
@@ -90,6 +91,7 @@ PublicRadio.prototype.removeConnection = function(socket) {
   if (index >= 0) {
     this.connections().splice(index, 1);
   }
+  socket.destroy();
 }
 
 PublicRadio.prototype.linkTo = function(host, port) {
