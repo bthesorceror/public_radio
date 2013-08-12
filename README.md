@@ -172,3 +172,8 @@ client3.on('connected', function(conn) {
 client3.connect();
 
 ```
+
+Credits
+=======
+
+Big thanks to @zufferguffin for the delightfully awesome header image.
