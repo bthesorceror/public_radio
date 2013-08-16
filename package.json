@@ -1,6 +1,6 @@
 {
   "name": "public_radio",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Build highly distributed services by allowing your node applications to share emitted events over tcp socket connections.",
   "main": "index.js",
   "scripts": {
