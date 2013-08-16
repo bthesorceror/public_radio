@@ -1,5 +1,4 @@
 var Telephone = require('telephone_duplexer');
-var proxy     = require('./proxy');
 
 function PublicRadioClient(host, port) {
   this.host = host;
@@ -33,10 +32,10 @@ PublicRadioClient.prototype.close = function() {
 }
 
 PublicRadioClient.prototype.connect = function() {
-  this.client = (require('net')).createConnection({port: this.port, host: this.host}, proxy(this._handler, this));
-  this.client.on('end', proxy(this.disconnected, this));
-  this.client.on('close', proxy(this.disconnected, this));
-  this.client.on('error', proxy(this.error, this));
+  this.client = (require('net')).createConnection({port: this.port, host: this.host}, this._handler.bind(this));
+  this.client.on('end', this.disconnected.bind(this));
+  this.client.on('close', this.disconnected.bind(this));
+  this.client.on('error', this.error.bind(this));
   return this;
 }
 

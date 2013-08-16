@@ -1,7 +1,6 @@
 var net          = require('net');
 var util         = require('util');
 var Telephone    = require('telephone_duplexer');
-var proxy        = require('./proxy');
 var RadioStatic  = require('radio_static');
 
 function PublicRadio(port) {
@@ -16,7 +15,7 @@ function PublicRadio(port) {
 util.inherits(PublicRadio, require('events').EventEmitter);
 
 PublicRadio.prototype.createServer = function() {
-  return net.createServer(proxy(this.setupConnection, this));
+  return net.createServer(this.setupConnection.bind(this));
 }
 
 PublicRadio.prototype.close = function() {
@@ -43,9 +42,9 @@ PublicRadio.prototype.addConnection = function(socket) {
 }
 
 PublicRadio.prototype.linkTo = function(host, port) {
-  var client = net.createConnection({port: port, host: host}, proxy(function() {
+  var client = net.createConnection({port: port, host: host}, function() {
     this.addConnection(client);
-  }, this));
+  }.bind(this));
 }
 
 module.exports = PublicRadio;
