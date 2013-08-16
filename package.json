@@ -16,7 +16,8 @@
   "author": "Brandon Farmer",
   "license": "BSD",
   "dependencies": {
-    "telephone_duplexer": "0.0.7"
+    "telephone_duplexer": "0.0.7",
+    "radio_static": "0.0.2"
   },
   "devDependencies": {
     "tape": "~1.0.4"

@@ -239,105 +239,17 @@ function createDone(servers) {
 })();
 
 (function() {
-
-  tape('servers remove disconnected client', function(t) {
-    var server = (new Server(porter.next())).listen(),
-        client = new Client('localhost', porter.current()).connect(),
-        done = createDone([server]);
-
-    var server_connection;
-
-    t.plan(3);
-
-    server.on('connection', function(conn) {
-      server_connection = conn;
-    });
-
-    server.on('disconnect', function(conn) {
-      t.equal(conn, server_connection, 'correct connection removed');
-      t.equal(server.connections().length, 0, 'server has 0 connections');
-    });
-
-    coffeeBreak(function() {
-      t.equal(server.connections().length, 1, 'server has 1 connection');
-      client.close();
-    });
-
-    t.on('end', function() {
-      done();
-    });
-  });
-
-  tape("servers remove disconnected client on 'end'", function(t) {
-    var server = (new Server(porter.next())).listen(),
-        client = new Client('localhost', porter.current()).connect(),
-        done = createDone([server]);
-
-    t.plan(3);
-
-    coffeeBreak(function() {
-      var connection = server.connections()[0];
-
-      server.on('disconnect', function(conn) {
-        t.equal(conn, connection, 'correct connection removed');
-        t.equal(server.connections().length, 0, 'server has 0 connections');
-      });
-
-      t.equal(server.connections().length, 1, 'server has 1 connection');
-      connection.emit('end');
-    });
-
-    t.on('end', function() {
-      done();
-    });
-  });
-
-  tape("servers remove disconnected client on 'close'", function(t) {
-    var server = (new Server(porter.next())).listen(),
-        client = new Client('localhost', porter.current()).connect(),
-        done = createDone([server]);
-
-    t.plan(3);
-
-    coffeeBreak(function() {
-      var connection = server.connections()[0];
-
-      server.on('disconnect', function(conn) {
-        t.equal(conn, connection, 'correct connection removed');
-        t.equal(server.connections().length, 0, 'server has 0 connections');
-      });
-
-      t.equal(server.connections().length, 1, 'server has 1 connection');
-      connection.emit('close');
-    });
-
-    t.on('end', function() {
-      done();
-    });
-  });
-
-  tape("servers remove disconnected client on 'error'", function(t) {
+  tape("servers delegates 'error' event", function(t) {
     var server = (new Server(porter.next())).listen();
-    var client = new Client('localhost', porter.current()).connect();
     var done   = createDone([server]);
 
-    t.plan(3);
+    t.plan(1);
 
     server.on('error', function(err) {
       t.equal(err, 'blah', 'server gets correct error');
-      coffeeBreak(function() {
-        t.equal(server.connections().length, 0, 'server has 0 connections');
-      });
     });
 
-    coffeeBreak(function() {
-      var connection = server.connections()[0];
-
-      t.equal(server.connections().length, 1, 'server has 1 connection');
-
-      connection.emit('error', 'blah');
-    });
-
+    server.stream.emit('error', 'blah');
     t.on('end', function() {
       done();
     });
