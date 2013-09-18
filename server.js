@@ -8,7 +8,7 @@ function PublicRadio(port) {
   this.server = this.createServer();
   this.stream = new RadioStatic();
   this.events = new Telephone(this.stream);
-  this.events.events().on('error', function(err) {
+  this.events.on('error', function(err) {
    this.emit('error', err);
   }.bind(this));
 }
