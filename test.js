@@ -26,12 +26,16 @@ function createTimeout() {
   }
 }
 
-function createDone(servers) {
+function createDone(servers, clients) {
   var timeout = createTimeout();
   return function() {
     timeout.clear();
     servers.forEach(function(server) {
       server.close();
+    });
+
+    clients.forEach(function(client) {
+      client.disconnect();
     });
   }
 }
@@ -40,7 +44,7 @@ function createDone(servers) {
   tape('server can communicate with client', function(t) {
     var server = (new Server(porter.next())).listen();
     var client = new Client('localhost', porter.current()).connect();
-    var done = createDone([server]);
+    var done = createDone([server], [client]);
 
     t.plan(2);
 
@@ -65,7 +69,7 @@ function createDone(servers) {
   tape('client can communicate with server', function(t) {
     var server = (new Server(porter.next())).listen(),
         client = new Client('localhost', porter.current()).connect(),
-        done = createDone([server]);
+        done = createDone([server], [client]);
 
     t.plan(1);
 
@@ -88,7 +92,7 @@ function createDone(servers) {
     var server = (new Server(porter.next())).listen(),
         client1 = new Client('localhost', porter.current()).connect(),
         client2 = new Client('localhost', porter.current()).connect(),
-        done = createDone([server]);
+        done = createDone([server], [client1, client2]);
 
     t.plan(1);
 
@@ -112,7 +116,7 @@ function createDone(servers) {
   tape('servers can communicate with each other', function(t) {
     var server1 = (new Server(porter.next())).listen(),
         server2 = (new Server(porter.next())).listen(),
-        done    = createDone([server1, server2]);
+        done    = createDone([server1, server2], []);
     server1.linkTo('localhost', porter.current());
 
     t.plan(2);
@@ -141,7 +145,7 @@ function createDone(servers) {
     var server1 = (new Server(porter.next())).listen(),
         server2 = (new Server(porter.next())).listen(),
         client  = (new Client('localhost', porter.current())).connect(),
-        done    = createDone([server1, server2]);
+        done    = createDone([server1, server2], []);
 
     server1.linkTo('localhost', porter.current());
 
@@ -175,7 +179,7 @@ function createDone(servers) {
         client1 = (new Client('localhost', porter.current())).connect(),
         server2 = (new Server(porter.next())).listen(),
         client2 = (new Client('localhost', porter.current())).connect(),
-        done    = createDone([server1, server2]);
+        done    = createDone([server1, server2], [client1, client2]);
 
     server1.linkTo('localhost', porter.current());
 
@@ -216,7 +220,7 @@ function createDone(servers) {
 (function() {
   tape('server does not broadcast to itself', function(t) {
     var server = (new Server(porter.next())).listen(),
-        done = createDone([server]);
+        done = createDone([server], []);
 
     t.plan(1);
 
@@ -228,9 +232,7 @@ function createDone(servers) {
 
     server.broadcast('message');
 
-    coffeeBreak(function() {
-      t.ok(not_called, 'server did not receive its own event');
-    });
+    t.ok(not_called, 'server did not receive its own event');
 
     t.on('end', function() {
       done();
@@ -241,7 +243,7 @@ function createDone(servers) {
 (function() {
   tape("servers delegates 'error' event", function(t) {
     var server = (new Server(porter.next())).listen();
-    var done   = createDone([server]);
+    var done   = createDone([server], []);
 
     t.plan(1);
 

@@ -7,7 +7,7 @@ function PublicRadioClient(host, port) {
 
 (require('util')).inherits(PublicRadioClient, require('events').EventEmitter);
 
-PublicRadioClient.prototype.disconnected = function() {
+PublicRadioClient.prototype.disconnect = function() {
   if (!this.disconnected) {
     this.emit('disconnected', this.connection);
     this.disconnected = true;
@@ -32,9 +32,13 @@ PublicRadioClient.prototype.close = function() {
 }
 
 PublicRadioClient.prototype.connect = function() {
-  this.client = (require('net')).createConnection({port: this.port, host: this.host}, this._handler.bind(this));
-  this.client.on('end', this.disconnected.bind(this));
-  this.client.on('close', this.disconnected.bind(this));
+  this.client = (require('net'))
+    .createConnection({
+      port: this.port,
+      host: this.host
+    }, this._handler.bind(this));
+  this.client.on('end', this.disconnect.bind(this));
+  this.client.on('close', this.disconnect.bind(this));
   this.client.on('error', this.error.bind(this));
   return this;
 }
